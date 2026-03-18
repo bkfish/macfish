@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="80" viewBox="0 0 96 80" fill="none">
+  <defs>
+    <linearGradient id="folderTop" x1="8" y1="8" x2="88" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8cd3ff" />
+      <stop offset="1" stop-color="#5aa8ff" />
+    </linearGradient>
+    <linearGradient id="folderBody" x1="8" y1="28" x2="88" y2="76" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4f9dff" />
+      <stop offset="1" stop-color="#2b6dff" />
+    </linearGradient>
+  </defs>
+  <path d="M10 18C10 14.6863 12.6863 12 16 12H38L46 20H80C83.3137 20 86 22.6863 86 26V30H10V18Z" fill="url(#folderTop)" />
+  <rect x="10" y="24" width="76" height="44" rx="8" fill="url(#folderBody)" />
+  <rect x="14" y="30" width="68" height="32" rx="6" fill="rgba(255,255,255,0.18)" />
+</svg>

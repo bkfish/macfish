@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <%- partial('_partial/head', { title: page.title || 'Folder' }) %>
+</head>
+<body class="theme-mac js <%= (theme && theme.desktop && theme.desktop.wallpaper) ? 'has-wallpaper' : '' %>">
+  <%- partial('_partial/menu') %>
+
+  <main class="desktop">
+    <div class="window reveal" style="--delay: 100ms;">
+      <div class="window-bar">
+        <div class="traffic">
+          <a class="traffic-dot red traffic-button" href="<%= url_for('/') %>" aria-label="Close"></a>
+          <span class="traffic-dot yellow"></span>
+          <button class="traffic-dot green traffic-button traffic-max" type="button" aria-label="Maximize"></button>
+        </div>
+        <div class="window-title"><%= page.folder ? page.folder.name : 'Folder' %></div>
+        <div class="window-actions">
+          <a class="window-link" href="<%= url_for('/') %>">Desktop</a>
+        </div>
+      </div>
+      <div class="window-body">
+        <% const folder = page.folder || { files: [] }; %>
+        <% if (!folder.files || folder.files.length === 0) { %>
+          <div class="empty-state">
+            <div class="empty-title">Folder is empty</div>
+            <div class="empty-sub">Add markdown files inside this folder</div>
+          </div>
+        <% } %>
+
+        <div class="file-grid">
+          <% folder.files.forEach((file, idx) => { %>
+            <% const shareUrl = file.post_path ? url_for(file.post_path) : url_for(file.url); %>
+            <a class="icon file reveal" style="--delay: <%= 120 + idx * 30 %>ms" href="<%= shareUrl %>">
+              <img src="<%= url_for('images/file.svg') %>" alt="File">
+              <span class="icon-label"><%= file.title %></span>
+            </a>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <%- partial('_partial/about') %>
+  <%- partial('_partial/music') %>
+  <%- partial('_partial/search') %>
+  <%- partial('_partial/dock') %>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <%- partial('_partial/head', { title: page.title || 'Page' }) %>
+</head>
+<body class="theme-mac js is-article-page <%= (theme && theme.desktop && theme.desktop.wallpaper) ? 'has-wallpaper' : '' %>">
+  <%- partial('_partial/menu') %>
+
+  <main class="desktop">
+    <div class="window wide reveal" style="--delay: 120ms;">
+      <div class="window-bar">
+        <div class="traffic">
+          <a class="traffic-dot red traffic-button" href="<%= url_for('/') %>" aria-label="Close"></a>
+          <span class="traffic-dot yellow"></span>
+          <button class="traffic-dot green traffic-button traffic-max" type="button" aria-label="Maximize"></button>
+        </div>
+        <div class="window-title"><%= page.title || 'Page' %></div>
+        <div class="window-actions">
+          <a class="window-link" href="<%= url_for('/') %>">Desktop</a>
+          <% const shareUrl = page.path ? url_for(page.path) : (page.permalink || ''); %>
+          <% if (shareUrl) { %>
+            <a class="window-link" href="<%= shareUrl %>" target="_blank" rel="noopener">Share</a>
+          <% } %>
+        </div>
+      </div>
+      <div class="window-body">
+        <% const articleDate = page.date || page.updated; %>
+        <div class="article-head">
+          <h1 class="article-title"><%= page.title || 'Page' %></h1>
+          <% if (articleDate) { %>
+            <div class="article-meta"><%= date(articleDate, config.date_format || 'YYYY-MM-DD') %></div>
+          <% } %>
+        </div>
+        <article class="markdown">
+          <%- page.content %>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <%- partial('_partial/about') %>
+  <%- partial('_partial/music') %>
+  <%- partial('_partial/search') %>
+  <%- partial('_partial/dock') %>
+
+  <!-- embed resize script removed: fixed-height iframe -->
+</body>
+</html>

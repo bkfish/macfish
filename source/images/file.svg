@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="88" viewBox="0 0 72 88" fill="none">
+  <defs>
+    <linearGradient id="fileBody" x1="10" y1="6" x2="62" y2="82" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" />
+      <stop offset="1" stop-color="#dfe7f5" />
+    </linearGradient>
+    <linearGradient id="fileFold" x1="44" y1="6" x2="62" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f8fbff" />
+      <stop offset="1" stop-color="#cfd9ed" />
+    </linearGradient>
+  </defs>
+  <path d="M14 6H42L62 26V78C62 81.3137 59.3137 84 56 84H14C10.6863 84 8 81.3137 8 78V12C8 8.68629 10.6863 6 14 6Z" fill="url(#fileBody)" />
+  <path d="M42 6V22C42 24.2091 43.7909 26 46 26H62" fill="url(#fileFold)" />
+  <rect x="18" y="34" width="36" height="4" rx="2" fill="#9fb3d6" />
+  <rect x="18" y="44" width="30" height="4" rx="2" fill="#9fb3d6" />
+  <rect x="18" y="54" width="26" height="4" rx="2" fill="#9fb3d6" />
+</svg>

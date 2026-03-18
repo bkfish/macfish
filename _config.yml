@@ -1,0 +1,39 @@
+# Mac-style desktop theme configuration
+# Place markdown files under: source/markdown/<Folder>/<File>.md
+
+desktop:
+  # Relative to Hexo source dir (usually ./source)
+  # Use _posts to reuse Hexo's default markdown directory.
+  markdown_dir: _posts
+
+  # Optional wallpaper image (relative to theme source/, or absolute URL)
+  # Example: images/wallpaper.jpg
+  wallpaper: images/wallpaper.jpg
+
+  # URL prefix for folder/file pages, set to '' to disable
+  route_prefix: desktop
+
+  # Whether to include empty folders on the desktop
+  show_empty_folders: true
+
+  # Sort folders/files by: name | updated
+  # For newest-first in folders, set to updated
+  sort: updated
+
+  # Group desktop folders by: tags | folders
+  group_by: tags
+
+  # Dock tools (static HTML under source/fun)
+  dock_tools:
+    - name: flag
+      path: fun/flag/index.html
+    - name: bomb
+      path: fun/bomb/index.html
+    - name: sudoku
+      path: fun/sudoku/index.html
+
+  # Online music URL (iframe). Example: https://music.163.com/outchain/player?type=0&id=3778678&auto=0&height=430
+  music_url: ""
+
+  # Local music directory (relative to Hexo source/)
+  music_dir: music

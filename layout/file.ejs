@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <%- partial('_partial/head', { title: page.title || 'Document' }) %>
+</head>
+<body class="theme-mac js is-article-page <%= (theme && theme.desktop && theme.desktop.wallpaper) ? 'has-wallpaper' : '' %>">
+  <%- partial('_partial/menu') %>
+
+  <main class="desktop">
+    <div class="window wide reveal" style="--delay: 120ms;">
+      <div class="window-bar">
+        <div class="traffic">
+          <a class="traffic-dot red traffic-button" href="<%= url_for('/') %>" aria-label="Close"></a>
+          <span class="traffic-dot yellow"></span>
+          <button class="traffic-dot green traffic-button traffic-max" type="button" aria-label="Maximize"></button>
+        </div>
+        <div class="window-title"><%= page.title %></div>
+        <div class="window-actions">
+          <a class="window-link" href="<%= url_for('/') %>">Desktop</a>
+          <% if (page.folder) { %>
+            <a class="window-link" href="<%= url_for(page.folder.url) %>">Back to <%= page.folder.name %></a>
+          <% } %>
+          <% const shareUrl = (page.file && page.file.post_path) ? url_for(page.file.post_path) : (page.path ? url_for(page.path) : ''); %>
+          <% if (shareUrl) { %>
+            <a class="window-link" href="<%= shareUrl %>" target="_blank" rel="noopener">Share</a>
+          <% } %>
+        </div>
+      </div>
+      <div class="window-body <%= (page.file && page.file.post_path) ? 'tool-body' : '' %>">
+        <% if (page.file && page.file.post_path) { %>
+          <div class="tool-frame-wrap article-frame-wrap">
+            <% const sharePath = url_for(page.file.post_path); %>
+            <% const embedUrl = sharePath.indexOf('?') === -1 ? (sharePath + '?embed=1') : (sharePath + '&embed=1'); %>
+            <iframe class="tool-frame" src="<%= embedUrl %>" loading="lazy" scrolling="yes"></iframe>
+          </div>
+        <% } else { %>
+          <% const articleDate = (page.file && page.file.updated) ? new Date(page.file.updated) : (page.date || page.updated); %>
+          <div class="article-head">
+            <h1 class="article-title"><%= page.title || 'Document' %></h1>
+            <% if (articleDate) { %>
+              <div class="article-meta"><%= date(articleDate, config.date_format || 'YYYY-MM-DD') %></div>
+            <% } %>
+          </div>
+          <article class="markdown">
+            <%- page.content %>
+          </article>
+        <% } %>
+      </div>
+    </div>
+  </main>
+
+  <%- partial('_partial/about') %>
+  <%- partial('_partial/music') %>
+  <%- partial('_partial/search') %>
+  <%- partial('_partial/dock') %>
+</body>
+</html>

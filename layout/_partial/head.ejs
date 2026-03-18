@@ -1,0 +1,11 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#d8f3ff">
+<title><%= title %></title>
+<% if (theme && theme.desktop && theme.desktop.wallpaper) { %>
+  <style>
+    :root { --wallpaper: url("<%= url_for(theme.desktop.wallpaper) %>"); }
+  </style>
+<% } %>
+<link rel="stylesheet" href="<%= url_for('css/main.css') %>">
+<script defer src="<%= url_for('js/main.js') %>"></script>

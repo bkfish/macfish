@@ -1,0 +1,103 @@
+<div class="dock">
+  <div class="dock-inner">
+    <span class="dock-item app finder">
+      <span class="dock-icon">
+        <svg class="dock-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 6.5c0-1.4 1.1-2.5 2.5-2.5h11c1.4 0 2.5 1.1 2.5 2.5v11c0 1.4-1.1 2.5-2.5 2.5h-11C5.1 20 4 18.9 4 17.5z"/>
+          <path d="M12 4v16"/>
+          <circle cx="9" cy="10" r="1" fill="currentColor"/>
+          <circle cx="15" cy="10" r="1" fill="currentColor"/>
+          <path d="M8.5 14.5c1 1 2.1 1.5 3.5 1.5s2.5-.5 3.5-1.5"/>
+        </svg>
+      </span>
+      <span class="dock-label">Finder</span>
+    </span>
+    <a class="dock-item app spotlight" href="#search">
+      <span class="dock-icon">
+        <svg class="dock-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="5.5"/>
+          <path d="M15.5 15.5L20 20"/>
+        </svg>
+      </span>
+      <span class="dock-label">聚焦搜索</span>
+    </a>
+    <a class="dock-item app notes" href="#notes">
+      <span class="dock-icon">
+        <svg class="dock-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="5" y="4.5" width="14" height="15" rx="2"/>
+          <path d="M8 8h8M8 11.5h8M8 15h5"/>
+        </svg>
+      </span>
+      <span class="dock-label">文章清单</span>
+    </a>
+    <span class="dock-item app safari">
+      <span class="dock-icon">
+        <svg class="dock-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="8"/>
+          <path d="M12 7l2.8 5.2-5.2 2.8z"/>
+        </svg>
+      </span>
+      <span class="dock-label">Safari</span>
+    </span>
+    <a class="dock-item app music" href="#music">
+      <span class="dock-icon">
+        <svg class="dock-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 18a2.5 2.5 0 1 0 0-5"/>
+          <path d="M9 13V6l9-2v7"/>
+          <path d="M16 16a2.5 2.5 0 1 0 0-5"/>
+        </svg>
+      </span>
+      <span class="dock-label">Music</span>
+    </a>
+    <span class="dock-item app trash">
+      <span class="dock-icon">
+        <svg class="dock-svg" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 8h12l-1 11H7z"/>
+          <path d="M9 8V5h6v3M5 8h14"/>
+        </svg>
+      </span>
+      <span class="dock-label">Trash</span>
+    </span>
+    <span class="dock-divider"></span>
+    <%
+      let tools = [];
+      const configTools = (theme && theme.desktop && Array.isArray(theme.desktop.dock_tools)) ? theme.desktop.dock_tools : [];
+      if (configTools.length) {
+        tools = configTools;
+      } else {
+        tools = (typeof mac_tools !== 'undefined' && Array.isArray(mac_tools)) ? mac_tools : [];
+      }
+      if (!tools.length) {
+        const pages = (site && site.pages && site.pages.toArray) ? site.pages.toArray() : (site && site.pages ? site.pages : []);
+        const funPages = pages.filter((page) => page.path && page.path.indexOf('fun/') === 0 && /index\.html$/i.test(page.path));
+        tools = funPages.map((page) => {
+          const parts = String(page.path).split('/');
+          const folderName = parts.length > 1 ? parts[1] : page.path;
+          return {
+            name: folderName,
+            path: page.path
+          };
+        });
+      }
+    %>
+    <% tools.forEach((tool) => { %>
+      <%
+        const toolId = tool.id || String(tool.name || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9\u4e00-\u9fa5\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '') || 'tool';
+        const toolLabel = String(tool.name || 'Tool');
+        const toolLetter = toolLabel.trim().charAt(0).toUpperCase() || 'T';
+      %>
+      <a class="dock-item tool" href="#tool-<%= toolId %>">
+        <span class="dock-icon">
+          <span class="tool-letter"><%= toolLetter %></span>
+        </span>
+        <span class="dock-label"><%= toolLabel %></span>
+      </a>
+    <% }) %>
+  </div>
+</div>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <%- partial('_partial/head', { title: config.title || 'Desktop' }) %>
+</head>
+<body class="theme-mac js <%= (theme && theme.desktop && theme.desktop.wallpaper) ? 'has-wallpaper' : '' %>">
+  <%- partial('_partial/menu') %>
+
+  <main class="desktop">
+    <%
+      const hasDesktop = (typeof mac_desktop !== 'undefined');
+      const sortMode = (theme && theme.desktop && theme.desktop.sort) ? theme.desktop.sort : 'name';
+      const groupBy = (theme && theme.desktop && theme.desktop.group_by) ? theme.desktop.group_by : 'tags';
+
+      function slugify(input) {
+        const str = String(input || '').trim().toLowerCase();
+        const cleaned = str
+          .replace(/[^a-z0-9\u4e00-\u9fa5\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+        return cleaned || 'item';
+      }
+
+      function toMs(value) {
+        if (!value) return 0;
+        if (typeof value.valueOf === 'function') return value.valueOf();
+        return Number(value) || 0;
+      }
+
+      function extractTags(post) {
+        let tags = [];
+        if (!post) return tags;
+        if (post.tags) {
+          if (typeof post.tags.toArray === 'function') {
+            tags = post.tags.toArray().map((tag) => tag && tag.name);
+          } else if (Array.isArray(post.tags)) {
+            tags = post.tags.map((tag) => (tag && tag.name) ? tag.name : tag);
+          } else if (typeof post.tags === 'string') {
+            tags = [post.tags];
+          }
+        }
+        const expanded = [];
+        tags.forEach((tag) => {
+          if (!tag) return;
+          const str = String(tag).trim();
+          if (!str) return;
+          if (str.indexOf(',') !== -1) {
+            str.split(',').forEach((part) => {
+              const clean = String(part || '').trim();
+              if (clean) expanded.push(clean);
+            });
+          } else {
+            expanded.push(str);
+          }
+        });
+        const seen = {};
+        return expanded.filter((tag) => {
+          const key = tag.toLowerCase();
+          if (seen[key]) return false;
+          seen[key] = true;
+          return true;
+        });
+      }
+
+      let folders = (hasDesktop && mac_desktop.folders) ? mac_desktop.folders : [];
+
+      if (!hasDesktop) {
+        const posts = (site && site.posts && site.posts.toArray) ? site.posts.toArray() : (site && site.posts ? site.posts : []);
+        const map = {};
+
+        posts.forEach((post) => {
+          if (groupBy === 'tags') {
+            const tags = extractTags(post);
+            if (!tags.length) return;
+            const updated = toMs(post.updated) || toMs(post.date);
+            const title = post.title || post.slug || 'Untitled';
+            const postPath = post.path ? post.path : '';
+
+            tags.forEach((tag) => {
+              const folderName = tag;
+              const folderSlug = slugify(folderName);
+              if (!map[folderName]) {
+                map[folderName] = { name: folderName, slug: folderSlug, url: '#folder-' + folderSlug, updated: 0, files: [] };
+              }
+              const fileSlug = slugify(post.slug || title);
+              map[folderName].files.push({
+                name: title,
+                slug: fileSlug,
+                id: folderSlug + '-' + fileSlug,
+                title,
+                url: postPath || '#',
+                post_path: postPath || '',
+                updated
+              });
+
+              if (updated > map[folderName].updated) map[folderName].updated = updated;
+            });
+          } else {
+            const source = String(post.source || post.path || '').replace(/\\/g, '/');
+            let parts = source.split('/');
+            if (parts[0] === '_posts') parts.shift();
+            if (parts.length < 2) return;
+
+            const folderName = parts[0];
+            const fileStem = parts[parts.length - 1].replace(/\.(md|markdown)$/i, '');
+            const fileSlug = slugify(fileStem);
+            const folderSlug = slugify(folderName);
+
+            if (!map[folderName]) {
+              map[folderName] = { name: folderName, slug: folderSlug, url: '#folder-' + folderSlug, updated: 0, files: [] };
+            }
+
+            const updated = toMs(post.updated) || toMs(post.date);
+            map[folderName].files.push({
+              name: fileStem,
+              slug: fileSlug,
+              id: folderSlug + '-' + fileSlug,
+              title: post.title || fileStem,
+              url: post.path ? url_for(post.path) : '#',
+              post_path: post.path || '',
+              updated,
+              content: post.content || post.excerpt || ''
+            });
+
+            if (updated > map[folderName].updated) map[folderName].updated = updated;
+          }
+        });
+
+        folders = Object.keys(map).map((key) => map[key]);
+        const sortByName = (a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN', { sensitivity: 'base' });
+        const sortByUpdated = (a, b) => (b.updated || 0) - (a.updated || 0);
+        const sortFn = sortMode === 'updated' ? sortByUpdated : sortByName;
+        folders.sort(sortFn);
+        folders.forEach((folder) => folder.files.sort(sortFn));
+      }
+    %>
+
+    <%
+      let tools = [];
+      const configTools = (theme && theme.desktop && Array.isArray(theme.desktop.dock_tools)) ? theme.desktop.dock_tools : [];
+      if (configTools.length) {
+        tools = configTools;
+      } else {
+        tools = (typeof mac_tools !== 'undefined' && Array.isArray(mac_tools)) ? mac_tools : [];
+      }
+      if (!tools.length) {
+        const pages = (site && site.pages && site.pages.toArray) ? site.pages.toArray() : (site && site.pages ? site.pages : []);
+        const funPages = pages.filter((page) => page.path && page.path.indexOf('fun/') === 0 && /index\.html$/i.test(page.path));
+        tools = funPages.map((page) => {
+          const parts = String(page.path).split('/');
+          const folderName = parts.length > 1 ? parts[1] : page.path;
+          const toolId = slugify(folderName);
+          return {
+            name: folderName,
+            id: toolId,
+            path: page.path
+          };
+        });
+      }
+      tools = tools.map((tool) => ({
+        name: tool.name,
+        path: tool.path,
+        id: tool.id || slugify(tool.name || tool.path || 'tool')
+      }));
+    %>
+
+    <div class="desktop-grid">
+      <% if (folders.length === 0) { %>
+        <div class="empty-state reveal" style="--delay: 80ms;">
+          <div class="empty-title">No folders found</div>
+          <% if (groupBy === 'tags') { %>
+            <div class="empty-sub">在文章 Front Matter 里添加 `tags:` 后刷新</div>
+          <% } else { %>
+            <div class="empty-sub">Create `source/_posts/&lt;Folder&gt;/&lt;File&gt;.md`</div>
+          <% } %>
+        </div>
+      <% } %>
+
+      <% folders.forEach((folder, idx) => { %>
+        <% const folderHref = hasDesktop ? url_for(folder.url) : folder.url; %>
+        <a class="icon folder reveal" style="--delay: <%= 60 + idx * 40 %>ms" href="<%= folderHref %>">
+          <img src="<%= url_for('images/folder.svg') %>" alt="Folder">
+          <span class="icon-label"><%= folder.name %></span>
+        </a>
+      <% }) %>
+    </div>
+
+    <% if (!hasDesktop && folders.length) { %>
+      <% folders.forEach((folder, idx) => { %>
+        <section id="folder-<%= folder.slug %>" class="folder-window">
+          <a class="folder-backdrop" href="#"></a>
+          <div class="window reveal" style="--delay: <%= 120 + idx * 40 %>ms;">
+            <div class="window-bar">
+              <div class="traffic">
+                <a class="traffic-dot red traffic-button" href="<%= url_for('/') %>" aria-label="Close"></a>
+                <span class="traffic-dot yellow"></span>
+                <button class="traffic-dot green traffic-button traffic-max" type="button" aria-label="Maximize"></button>
+              </div>
+              <div class="window-title"><%= folder.name %></div>
+              <div class="window-actions">
+                <a class="window-link" href="#">Close</a>
+              </div>
+            </div>
+            <div class="window-body">
+              <div class="file-grid">
+                <% folder.files.forEach((file, fIdx) => { %>
+                  <% const fileUrl = hasDesktop ? url_for(file.url) : file.url; %>
+                  <% const shareUrl = file.post_path ? url_for(file.post_path) : fileUrl; %>
+                  <% const articleUrl = shareUrl || fileUrl; %>
+                  <a
+                    class="icon file reveal"
+                    style="--delay: <%= 140 + fIdx * 20 %>ms"
+                    href="#article"
+                    data-article-url="<%= articleUrl %>"
+                    data-article-title="<%= file.title %>"
+                    data-article-back="#folder-<%= folder.slug %>"
+                    data-article-share="<%= shareUrl %>">
+                    <img src="<%= url_for('images/file.svg') %>" alt="File">
+                    <span class="icon-label"><%= file.title %></span>
+                  </a>
+                <% }) %>
+              </div>
+            </div>
+          </div>
+        </section>
+      <% }) %>
+    <% } %>
+
+    <section id="article" class="file-window">
+      <a class="folder-backdrop" href="#"></a>
+      <div class="window wide reveal" style="--delay: 140ms;">
+        <div class="window-bar">
+          <div class="traffic">
+            <a class="traffic-dot red traffic-button" href="<%= url_for('/') %>" aria-label="Close"></a>
+            <span class="traffic-dot yellow"></span>
+            <button class="traffic-dot green traffic-button traffic-max" type="button" aria-label="Maximize"></button>
+          </div>
+          <div class="window-title" id="article-title">Article</div>
+          <div class="window-actions">
+            <a class="window-link" id="article-back" href="#">Back</a>
+            <a class="window-link" id="article-share" href="#" target="_blank" rel="noopener">Share</a>
+          </div>
+        </div>
+        <div class="window-body tool-body">
+          <div class="tool-frame-wrap article-frame-wrap">
+            <iframe id="article-frame" class="tool-frame" src="" loading="lazy" scrolling="yes"></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <% if (tools.length) { %>
+      <% tools.forEach((tool, idx) => { %>
+        <section id="tool-<%= tool.id %>" class="tool-window">
+          <a class="folder-backdrop" href="#"></a>
+          <div class="window wide reveal" style="--delay: <%= 140 + idx * 30 %>ms;">
+            <div class="window-bar">
+              <div class="traffic">
+                <a class="traffic-dot red traffic-button" href="<%= url_for('/') %>" aria-label="Close"></a>
+                <span class="traffic-dot yellow"></span>
+                <button class="traffic-dot green traffic-button traffic-max" type="button" aria-label="Maximize"></button>
+              </div>
+              <div class="window-title"><%= tool.name %></div>
+              <div class="window-actions">
+                <a class="window-link" href="#">Close</a>
+                <a class="window-link" href="<%= url_for(tool.path) %>">Open page</a>
+              </div>
+            </div>
+            <div class="window-body tool-body">
+              <div class="tool-frame-wrap">
+                <iframe class="tool-frame" data-src="<%= url_for(tool.path) %>" loading="lazy" scrolling="yes"></iframe>
+              </div>
+            </div>
+          </div>
+        </section>
+      <% }) %>
+    <% } %>
+
+    <%
+      const notesPosts = (site && site.posts && site.posts.toArray) ? site.posts.toArray() : (site && site.posts ? site.posts : []);
+      const dateFormat = config.date_format || 'YYYY-MM-DD';
+      notesPosts.sort((a, b) => {
+        const ad = a.date ? a.date.valueOf() : 0;
+        const bd = b.date ? b.date.valueOf() : 0;
+        return bd - ad;
+      });
+    %>
+    <section id="notes" class="notes-window">
+      <a class="folder-backdrop" href="#"></a>
+      <div class="window wide reveal" style="--delay: 160ms;">
+        <div class="window-bar">
+          <div class="traffic">
+            <a class="traffic-dot red traffic-button" href="<%= url_for('/') %>" aria-label="Close"></a>
+            <span class="traffic-dot yellow"></span>
+            <button class="traffic-dot green traffic-button traffic-max" type="button" aria-label="Maximize"></button>
+          </div>
+          <div class="window-title">文章清单</div>
+          <div class="window-actions">
+            <a class="window-link" href="#">Close</a>
+          </div>
+        </div>
+        <div class="window-body notes-body">
+          <% if (!notesPosts.length) { %>
+            <div class="empty-state">
+              <div class="empty-title">暂无文章</div>
+              <div class="empty-sub">请在 `source/_posts/` 下添加文章</div>
+            </div>
+          <% } else { %>
+            <ul class="notes-list">
+              <% notesPosts.forEach((post) => { %>
+                <li class="notes-item">
+                  <a class="notes-link" href="<%= url_for(post.path) %>"><%= post.title || post.slug %></a>
+                  <span class="notes-date"><%= date(post.date, dateFormat) %></span>
+                </li>
+              <% }) %>
+            </ul>
+          <% } %>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <%- partial('_partial/about') %>
+  <%- partial('_partial/music') %>
+  <%- partial('_partial/search') %>
+  <%- partial('_partial/dock') %>
+</body>
+</html>

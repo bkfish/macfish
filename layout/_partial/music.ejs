@@ -1,0 +1,122 @@
+<%
+  const musicUrl = (theme && theme.desktop && theme.desktop.music_url) ? theme.desktop.music_url : '';
+  const isAbs = /^(https?:)?\/\//.test(musicUrl);
+  const iframeSrc = musicUrl ? (isAbs ? musicUrl : url_for(musicUrl)) : '';
+  let tracks = (typeof mac_music !== 'undefined' && Array.isArray(mac_music)) ? mac_music : [];
+
+  if (!iframeSrc && (!tracks || tracks.length === 0)) {
+    try {
+      const g = (typeof global !== 'undefined') ? global : (typeof globalThis !== 'undefined' ? globalThis : {});
+      if (!g.__mac_music_cache) {
+        const fs = require('fs');
+        const path = require('path');
+        const musicDir = (theme && theme.desktop && theme.desktop.music_dir) ? theme.desktop.music_dir : 'music';
+        const sourceRoot = path.resolve(process.cwd(), config.source_dir || 'source');
+        const musicRoot = path.join(sourceRoot, musicDir);
+        let local = [];
+        if (fs.existsSync(musicRoot)) {
+          local = fs.readdirSync(musicRoot)
+            .filter((name) => /\.mp3$/i.test(name))
+            .map((name) => ({
+              title: name.replace(/\.mp3$/i, ''),
+              path: `${musicDir}/${name}`
+            }))
+            .sort((a, b) => a.title.localeCompare(b.title, 'zh-Hans-CN', { sensitivity: 'base' }));
+        }
+        g.__mac_music_cache = local;
+      }
+      tracks = g.__mac_music_cache || [];
+    } catch (err) {
+      tracks = [];
+    }
+  }
+%>
+
+<section id="music" class="tool-window music-window">
+  <a class="folder-backdrop" href="#"></a>
+  <div class="window wide reveal" style="--delay: 140ms;">
+    <div class="window-bar">
+      <div class="traffic">
+        <a class="traffic-dot red traffic-button" href="<%= url_for('/') %>" aria-label="Close"></a>
+        <span class="traffic-dot yellow"></span>
+        <button class="traffic-dot green traffic-button traffic-max" type="button" aria-label="Maximize"></button>
+      </div>
+      <div class="window-title">Music</div>
+      <div class="window-actions">
+        <a class="window-link" href="#">Close</a>
+        <% if (iframeSrc) { %>
+          <a class="window-link" href="<%= iframeSrc %>" target="_blank" rel="noopener">Open page</a>
+        <% } %>
+      </div>
+    </div>
+    <div class="window-body tool-body music-body">
+      <% if (iframeSrc) { %>
+        <div class="tool-frame-wrap">
+          <iframe class="tool-frame" data-src="<%= iframeSrc %>" loading="lazy" scrolling="yes"></iframe>
+        </div>
+      <% } else if (tracks.length) { %>
+        <div class="music-shell">
+          <div class="music-player">
+            <div class="music-cover">
+              <svg class="music-cover-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 18a2.5 2.5 0 1 0 0-5"/>
+                <path d="M9 13V6l9-2v7"/>
+                <path d="M16 16a2.5 2.5 0 1 0 0-5"/>
+              </svg>
+            </div>
+            <div class="music-meta">
+              <div class="music-title" id="music-title">选择一首歌</div>
+              <div class="music-sub" id="music-sub">本地 MP3</div>
+            </div>
+            <div class="music-controls">
+              <button class="music-btn" id="music-prev" type="button" aria-label="Previous">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 6v12M18 6l-8 6 8 6z"/>
+                </svg>
+              </button>
+              <button class="music-btn primary" id="music-play" type="button" aria-label="Play/Pause">
+                <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 6l10 6-10 6z"/>
+                </svg>
+                <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 6h4v12H7zM13 6h4v12h-4z"/>
+                </svg>
+              </button>
+              <button class="music-btn" id="music-next" type="button" aria-label="Next">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M18 6v12M6 6l8 6-8 6z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="music-progress">
+              <span class="music-time" id="music-current">0:00</span>
+              <input class="music-slider" id="music-progress" type="range" min="0" max="100" value="0" step="1">
+              <span class="music-time" id="music-duration">0:00</span>
+            </div>
+          </div>
+          <ul class="music-list" id="music-list">
+            <% tracks.forEach((track, idx) => { %>
+              <li>
+                <button
+                  class="music-track"
+                  type="button"
+                  data-index="<%= idx %>"
+                  data-src="<%= url_for(track.path) %>"
+                  data-title="<%= track.title %>">
+                  <span class="music-track-title"><%= track.title %></span>
+                  <span class="music-track-meta">MP3</span>
+                </button>
+              </li>
+            <% }) %>
+          </ul>
+          <audio id="music-audio" preload="metadata"></audio>
+        </div>
+      <% } else { %>
+        <div class="empty-state">
+          <div class="empty-title">未发现本地音乐</div>
+          <div class="empty-sub">把 MP3 放在 `source/music/`（或在主题配置里设置 `desktop.music_dir`）</div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>

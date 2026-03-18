@@ -1,0 +1,24 @@
+<section id="search" class="search-window" data-index-url="<%= url_for('mac-search.json') %>">
+  <a class="folder-backdrop" href="#"></a>
+  <div class="window wide reveal" style="--delay: 140ms;">
+    <div class="window-bar">
+      <div class="traffic">
+        <a class="traffic-dot red traffic-button" href="<%= url_for('/') %>" aria-label="Close"></a>
+        <span class="traffic-dot yellow"></span>
+        <button class="traffic-dot green traffic-button traffic-max" type="button" aria-label="Maximize"></button>
+      </div>
+    <div class="window-title">聚焦搜索</div>
+      <div class="window-actions">
+        <a class="window-link" href="#">Close</a>
+      </div>
+    </div>
+    <div class="window-body search-body">
+      <div class="search-input-wrap">
+        <input id="search-input" class="search-input" type="search" placeholder="搜索文章..." autocomplete="off">
+        <span class="search-hint">⌘K</span>
+      </div>
+      <ul id="search-results" class="search-results"></ul>
+      <div id="search-empty" class="search-empty">未找到结果</div>
+    </div>
+  </div>
+</section>
